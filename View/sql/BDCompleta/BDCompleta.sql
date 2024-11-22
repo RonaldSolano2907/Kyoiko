@@ -230,7 +230,7 @@ CREATE TABLE Departamento (
 
 -- INSERTS  DEPARTAMENTO
 
-NSERT INTO Departamento (IdDepartamento, Nombre, Descripcion, CedulaJefeDepartamento)
+INSERT INTO Departamento (IdDepartamento, Nombre, Descripcion, CedulaJefeDepartamento)
 VALUES (1, 'Informatica', 'Departamento de Tecnologia e Informatica', '123456789');
  
 INSERT INTO Departamento (IdDepartamento, Nombre, Descripcion, CedulaJefeDepartamento)
