@@ -17,25 +17,25 @@ CREATE TABLE Estudiante (
 INSERT INTO Estudiante (
     Cedula, IdEstudiante, Nombre, Apellido1, Telefono, FechaNacimiento, CorreoElectronico, FechaInscripcion, Estado
 ) VALUES (
-    '123456789', 'EST001', 'Juan', 'P�rez', '88888888', DATE '1995-05-15', 'juan.perez@gmail.com', DATE '2024-01-15', 'activo');
+    '123456789', 'EST001', 'Juan', 'Perez', '88888888', DATE '1995-05-15', 'juan.perez@gmail.com', DATE '2024-01-15', 'activo');
 
 INSERT INTO Estudiante (
     Cedula, IdEstudiante, Nombre, Apellido1, Telefono, FechaNacimiento, CorreoElectronico, FechaInscripcion, Estado
 ) VALUES (
-    '987654321', 'EST002', 'Ana', 'G�mez', '87776655', DATE '1997-09-10', 'ana.gomez@hotmail.com', DATE '2023-12-01', 'activo');
+    '987654321', 'EST002', 'Ana', 'Gomez', '87776655', DATE '1997-09-10', 'ana.gomez@hotmail.com', DATE '2023-12-01', 'activo');
 INSERT INTO Estudiante (
     Cedula, IdEstudiante, Nombre, Apellido1, Telefono, FechaNacimiento, CorreoElectronico, FechaInscripcion, Estado
 ) VALUES (
-    '456789123', 'EST003', 'Luis', 'Ram�rez', '89990000', DATE '1999-03-25', 'luis.ramirez@gmail.com', DATE '2022-05-20', 'inactivo');
+    '456789123', 'EST003', 'Luis', 'Ramirez', '89990000', DATE '1999-03-25', 'luis.ramirez@gmail.com', DATE '2022-05-20', 'inactivo');
 
 INSERT INTO Estudiante (
     Cedula, IdEstudiante, Nombre, Apellido1, Telefono, FechaNacimiento, CorreoElectronico, FechaInscripcion, Estado
 ) VALUES (
-    '321654987', 'EST004', 'Mar�a', 'Lopez', '86667744', DATE '1996-07-08', 'maria.lopez@yahoo.com', DATE '2021-10-10', 'activo');
+    '321654987', 'EST004', 'Maria', 'Lopez', '86667744', DATE '1996-07-08', 'maria.lopez@yahoo.com', DATE '2021-10-10', 'activo');
 INSERT INTO Estudiante (
     Cedula, IdEstudiante, Nombre, Apellido1, Telefono, FechaNacimiento, CorreoElectronico, FechaInscripcion, Estado
 ) VALUES (
-    '789123456', 'EST005', 'Carlos', 'Fern�ndez', '85554433', DATE '2000-12-30', 'carlos.fernandez@gmail.com', DATE '2024-02-14', 'inactivo');
+    '789123456', 'EST005', 'Carlos', 'Fernandez', '85554433', DATE '2000-12-30', 'carlos.fernandez@gmail.com', DATE '2024-02-14', 'inactivo');
 --TABLA DIRECCION
 CREATE TABLE Direccion (
     IdDireccion INT PRIMARY KEY NOT NULL,
@@ -49,16 +49,16 @@ CREATE TABLE Direccion (
 
 --INSERTS DIRECCION
 INSERT INTO Direccion (IdDireccion, Provincia, Canton, Distrito, DireccionExacta, CedulaEstudiante)
-VALUES (1, 'San Jos�', 'Central', 'Carmen', 'Calle 1, Avenida 2, casa amarilla', '123456789');
+VALUES (1, 'San Jose', 'Central', 'Carmen', 'Calle 1, Avenida 2, casa amarilla', '123456789');
 
 INSERT INTO Direccion (IdDireccion, Provincia, Canton, Distrito, DireccionExacta, CedulaEstudiante)
-VALUES (3, 'Alajuela', 'Central', 'San Jos�', 'Barrio La Paz, del parque 200 metros este', '987654321');
+VALUES (3, 'Alajuela', 'Central', 'San Jose', 'Barrio La Paz, del parque 200 metros este', '987654321');
 
 INSERT INTO Direccion (IdDireccion, Provincia, Canton, Distrito, DireccionExacta, CedulaEstudiante)
 VALUES (4, 'Heredia', 'Central', 'San Francisco', 'Residencial El Prado, casa 15', '456789123');
 
 INSERT INTO Direccion (IdDireccion, Provincia, Canton, Distrito, DireccionExacta, CedulaEstudiante)
-VALUES (2, 'Cartago', 'La Uni�n', 'Tres R�os', 'Del supermercado 300 metros norte', '321654987');
+VALUES (2, 'Cartago', 'La Union', 'Tres Rios', 'Del supermercado 300 metros norte', '321654987');
 
 INSERT INTO Direccion (IdDireccion, Provincia, Canton, Distrito, DireccionExacta, CedulaEstudiante)
 VALUES (6, 'Puntarenas', 'Central', 'Barranca', 'Frente a la iglesia principal', '789123456');
@@ -72,19 +72,20 @@ CREATE TABLE Materia (
 );
 -- INSERTS MATERIA
 INSERT INTO Materia (IdMateria, Nombre, Descripcion, Creditos)
-VALUES (1001, 'Matem�ticas', 'C�lculo diferencial e integral', 4);
-
+VALUES (1001, 'Matematicas', 'Calculo diferencial e integral', 4);
+ 
 INSERT INTO Materia (IdMateria, Nombre, Descripcion, Creditos)
-VALUES (1002, 'F�sica', 'Introducci�n a la f�sica cl�sica', 3);
-
+VALUES (1002, 'Fisica', 'Introduccion a la fisica clasica', 3);
+ 
 INSERT INTO Materia (IdMateria, Nombre, Descripcion, Creditos)
-VALUES (1003, 'Qu�mica', 'Qu�mica general y aplicada', 4);
-
+VALUES (1003, 'Quimica', 'Quimica general y aplicada', 4);
+ 
 INSERT INTO Materia (IdMateria, Nombre, Descripcion, Creditos)
 VALUES (1004, 'Historia', 'Historia de Costa Rica', 2);
-
+ 
 INSERT INTO Materia (IdMateria, Nombre, Descripcion, Creditos)
-VALUES (1005, 'Ingl�s', 'Curso avanzado de ingl�s�t�cnico', 3);
+VALUES (1005, 'Ingles', 'Curso avanzado de ingles tecnico', 3);
+
 --TABLA HORARIOS
 CREATE TABLE Horarios (
     IdHorario INT PRIMARY KEY NOT NULL,
@@ -95,7 +96,7 @@ CREATE TABLE Horarios (
     DiaSemana VARCHAR2(15),
     FOREIGN KEY (IdMateria) REFERENCES Materia(IdMateria),
     CONSTRAINT chk_dia_semana CHECK (DiaSemana IN (
-        'Lunes', 'Martes', 'Mi�rcoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo')) -- Restricci�n�CHECK
+        'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo')) 
 );
 -- INSERTS HORARIOS
 INSERT INTO Horarios (IdHorario, Aula, HorarioInicio, HorarioFin, IdMateria, DiaSemana)
@@ -105,7 +106,7 @@ INSERT INTO Horarios (IdHorario, Aula, HorarioInicio, HorarioFin, IdMateria, Dia
 VALUES (2, 'B202', TO_TIMESTAMP('10:30:00', 'HH24:MI:SS'), TO_TIMESTAMP('12:30:00', 'HH24:MI:SS'), 1002, 'Martes');
 
 INSERT INTO Horarios (IdHorario, Aula, HorarioInicio, HorarioFin, IdMateria, DiaSemana)
-VALUES (3, 'C303', TO_TIMESTAMP('14:00:00', 'HH24:MI:SS'), TO_TIMESTAMP('16:00:00', 'HH24:MI:SS'), 1003, 'Mi�rcoles');
+VALUES (3, 'C303', TO_TIMESTAMP('14:00:00', 'HH24:MI:SS'), TO_TIMESTAMP('16:00:00', 'HH24:MI:SS'), 1003, 'Miercoles');
 
 INSERT INTO Horarios (IdHorario, Aula, HorarioInicio, HorarioFin, IdMateria, DiaSemana)
 VALUES (4, 'D404', TO_TIMESTAMP('09:00:00', 'HH24:MI:SS'), TO_TIMESTAMP('11:00:00', 'HH24:MI:SS'), 1004, 'Jueves');
@@ -125,30 +126,47 @@ CREATE TABLE Congelamientos (
 -- INSERTS CONGELAMIENTOS
 INSERT INTO Congelamientos (IdCongelamiento, Motivo, FechaInicio, FechaFin, CedulaEstudiante)
 VALUES (1, 'Problemas de salud', DATE '2023-01-15', DATE '2023-06-15', '123456789');
-
+ 
 INSERT INTO Congelamientos (IdCongelamiento, Motivo, FechaInicio, FechaFin, CedulaEstudiante)
-VALUES (2, 'Viaje acad�mico', DATE '2023-08-01', DATE '2023-12-01', '987654321');
-
+VALUES (2, 'Viaje academico', DATE '2023-08-01', DATE '2023-12-01', '987654321');
+ 
 INSERT INTO Congelamientos (IdCongelamiento, Motivo, FechaInicio, FechaFin, CedulaEstudiante)
 VALUES (3, 'Razones familiares', DATE '2024-03-01', DATE '2024-07-01', '456789123');
-
+ 
 INSERT INTO Congelamientos (IdCongelamiento, Motivo, FechaInicio, FechaFin, CedulaEstudiante)
-VALUES (4, 'Problemas econ�micos', DATE '2024-05-15', DATE '2024-09-15', '321654987');
-
+VALUES (4, 'Problemas economicos', DATE '2024-05-15', DATE '2024-09-15', '321654987');
+ 
 INSERT INTO Congelamientos (IdCongelamiento, Motivo, FechaInicio, FechaFin, CedulaEstudiante)
-VALUES (5, 'Participaci�n en eventos deportivos', DATE '2024-10-01', DATE '2024-12-31', '789123456');
+VALUES (5, 'Participacion en eventos deportivos', DATE '2024-10-01', DATE '2024-12-31', '789123456');
 
 --TABLA MATRICULA
 CREATE TABLE Matricula (
     IdMatricula VARCHAR2(100) PRIMARY KEY NOT NULL,
     Semestre INT,
-    A�o INT,
+    Ano INT,
     FechaMatricula DATE,
     CedulaEstudiante VARCHAR2(9),
     IdMateria INT,
     FOREIGN KEY (CedulaEstudiante) REFERENCES Estudiante(Cedula),
     FOREIGN KEY (IdMateria) REFERENCES Materia(IdMateria)
 );
+
+-- INSERTS MATRICULA
+
+INSERT INTO Matricula (IdMatricula, Semestre, Ano, FechaMatricula, CedulaEstudiante, IdMateria)
+VALUES ('MATR001', 1, 2024, DATE '2024-01-15', '123456789', 1001);
+ 
+INSERT INTO Matricula (IdMatricula, Semestre, Ano, FechaMatricula, CedulaEstudiante, IdMateria)
+VALUES ('MATR002', 1, 2024, DATE '2024-02-20', '987654321', 1002);
+ 
+INSERT INTO Matricula (IdMatricula, Semestre, Ano, FechaMatricula, CedulaEstudiante, IdMateria)
+VALUES ('MATR003', 2, 2024, DATE '2024-03-10', '456789123', 1003);
+ 
+INSERT INTO Matricula (IdMatricula, Semestre, Ano, FechaMatricula, CedulaEstudiante, IdMateria)
+VALUES ('MATR004', 2, 2023, DATE '2023-07-01', '321654987', 1004);
+ 
+INSERT INTO Matricula (IdMatricula, Semestre, Ano, FechaMatricula, CedulaEstudiante, IdMateria)
+VALUES ('MATR005', 1, 2023, DATE '2023-09-15', '789123456', 1005);
 
 --TABLA PRERREQUISITOS
 CREATE TABLE Prerrequisitos (
@@ -159,6 +177,23 @@ CREATE TABLE Prerrequisitos (
     FOREIGN KEY (IDMateriaPrerrequisito) REFERENCES Materia(IdMateria)
 );
 
+-- INSERTS PRERREQUISITOS
+
+INSERT INTO Prerrequisitos (IdPrerrequisito, IdMateriaPrincipal, IdMateriaPrerrequisito)
+VALUES (1, 1002, 1001);
+ 
+INSERT INTO Prerrequisitos (IdPrerrequisito, IdMateriaPrincipal, IdMateriaPrerrequisito)
+VALUES (2, 1003, 1002);
+ 
+INSERT INTO Prerrequisitos (IdPrerrequisito, IdMateriaPrincipal, IdMateriaPrerrequisito)
+VALUES (3, 1004, 1003);
+ 
+INSERT INTO Prerrequisitos (IdPrerrequisito, IdMateriaPrincipal, IdMateriaPrerrequisito)
+VALUES (4, 1005, 1004);
+ 
+INSERT INTO Prerrequisitos (IdPrerrequisito, IdMateriaPrincipal, IdMateriaPrerrequisito)
+VALUES (5, 1003, 1001);
+
 --TABLA JEFES DEPARTAMENTOS
 CREATE TABLE JEFES_DEPARTAMENTOS(
     Cedula VARCHAR2(9) NOT NULL PRIMARY KEY,
@@ -166,6 +201,23 @@ CREATE TABLE JEFES_DEPARTAMENTOS(
     PrimerApellido VARCHAR(100) NOT NULL,
     SegundoApellido VARCHAR(100) NOT NULL
 );
+
+-- INSERTS JEFES DEPARTAMENTOS
+
+INSERT INTO JEFES_DEPARTAMENTOS (Cedula, Nombre, PrimerApellido, SegundoApellido)
+VALUES ('123456789', 'Carlos', 'Perez', 'Rodriguez');
+ 
+INSERT INTO JEFES_DEPARTAMENTOS (Cedula, Nombre, PrimerApellido, SegundoApellido)
+VALUES ('987654321', 'Maria', 'Gomez', 'Fernandez');
+ 
+INSERT INTO JEFES_DEPARTAMENTOS (Cedula, Nombre, PrimerApellido, SegundoApellido)
+VALUES ('456789123', 'Luis', 'Ramirez', 'Lopez');
+ 
+INSERT INTO JEFES_DEPARTAMENTOS (Cedula, Nombre, PrimerApellido, SegundoApellido)
+VALUES ('321654987', 'Ana', 'Martinez', 'Castro');
+ 
+INSERT INTO JEFES_DEPARTAMENTOS (Cedula, Nombre, PrimerApellido, SegundoApellido)
+VALUES ('789123456', 'Jose', 'Hernandez', 'Morales');
 
 --TABLA DEPARTAMENTO
 CREATE TABLE Departamento (
@@ -175,6 +227,23 @@ CREATE TABLE Departamento (
     CedulaJefeDepartamento VARCHAR2(9) NOT NULL,
     FOREIGN KEY (CedulaJefeDepartamento) REFERENCES JEFES_DEPARTAMENTOS(Cedula)
 );
+
+-- INSERTS  DEPARTAMENTO
+
+NSERT INTO Departamento (IdDepartamento, Nombre, Descripcion, CedulaJefeDepartamento)
+VALUES (1, 'Informatica', 'Departamento de Tecnologia e Informatica', '123456789');
+ 
+INSERT INTO Departamento (IdDepartamento, Nombre, Descripcion, CedulaJefeDepartamento)
+VALUES (2, 'Administracion', 'Departamento de Gestion Administrativa', '987654321');
+ 
+INSERT INTO Departamento (IdDepartamento, Nombre, Descripcion, CedulaJefeDepartamento)
+VALUES (3, 'Recursos Humanos', 'Departamento de Gestion del Talento Humano', '456789123');
+ 
+INSERT INTO Departamento (IdDepartamento, Nombre, Descripcion, CedulaJefeDepartamento)
+VALUES (4, 'Marketing', 'Departamento de Promocion y Ventas', '321654987');
+ 
+INSERT INTO Departamento (IdDepartamento, Nombre, Descripcion, CedulaJefeDepartamento)
+VALUES (5, 'Finanzas', 'Departamento de Gestion Financiera', '789123456');
 
 --TABLA PROFESOR
 CREATE TABLE PROFESORES (
@@ -188,16 +257,50 @@ CREATE TABLE PROFESORES (
     CONSTRAINT FK_Id_Departamento FOREIGN KEY (IdDepartamento) REFERENCES DEPARTAMENTO(IdDepartamento)
 );
 
+-- INSERTS  PROFESOR
+
+INSERT INTO Profesores (Cedula, Nombre, PrimerApellido, FechaNacimiento, CorreoElectronico, TituloAcademico, IdDepartamento)
+VALUES ('123456789', 'Carlos', 'Lopez', DATE '1985-03-15', 'carlos.lopez@uninformatica.com', 'Doctor en Informatica', 1);
+ 
+INSERT INTO Profesores (Cedula, Nombre, PrimerApellido, FechaNacimiento, CorreoElectronico, TituloAcademico, IdDepartamento)
+VALUES ('987654321', 'Maria', 'Hernandez', DATE '1990-06-20', 'maria.hernandez@unadministracion.com', 'Master en Administracion', 2);
+ 
+INSERT INTO Profesores (Cedula, Nombre, PrimerApellido, FechaNacimiento, CorreoElectronico, TituloAcademico, IdDepartamento)
+VALUES ('456789123', 'Luis', 'Castro', DATE '1980-11-05', 'luis.castro@unrecursoshumanos.com', 'Licenciatura en Psicologia', 3);
+ 
+INSERT INTO Profesores (Cedula, Nombre, PrimerApellido, FechaNacimiento, CorreoElectronico, TituloAcademico, IdDepartamento)
+VALUES ('321654987', 'Ana', 'Mora', DATE '1988-01-10', 'ana.mora@unmarketing.com', 'Master en Marketing', 4);
+ 
+INSERT INTO Profesores (Cedula, Nombre, PrimerApellido, FechaNacimiento, CorreoElectronico, TituloAcademico, IdDepartamento)
+VALUES ('789123456', 'Jose', 'Rodriguez', DATE '1975-08-25', 'jose.rodriguez@unfinanzas.com', 'Doctor en Finanzas', 5);
+
 --TABLA ASIGNACION
 CREATE TABLE Asignacion (
     IdAsignacion VARCHAR2(100) PRIMARY KEY NOT NULL,
     Semestre INT,
-    A�o INT,
+    Ano INT,
     IdMateria INT,
     CedulaProfesor VARCHAR(9),
     FOREIGN KEY (IdMateria) REFERENCES Materia(IdMateria),
     FOREIGN KEY (CedulaProfesor) REFERENCES Profesores(Cedula)
 );
+
+-- INSERTS  ASIGNACION
+
+INSERT INTO Asignacion (IdAsignacion, Semestre, Ano, IdMateria, CedulaProfesor)
+VALUES ('ASIG001', 1, 2024, 1001, '123456789');
+ 
+INSERT INTO Asignacion (IdAsignacion, Semestre, Ano, IdMateria, CedulaProfesor)
+VALUES ('ASIG002', 1, 2024, 1002, '987654321');
+ 
+INSERT INTO Asignacion (IdAsignacion, Semestre, Ano, IdMateria, CedulaProfesor)
+VALUES ('ASIG003', 2, 2024, 1003, '456789123');
+ 
+INSERT INTO Asignacion (IdAsignacion, Semestre, Ano, IdMateria, CedulaProfesor)
+VALUES ('ASIG004', 2, 2024, 1004, '321654987');
+ 
+INSERT INTO Asignacion (IdAsignacion, Semestre, Ano, IdMateria, CedulaProfesor)
+VALUES ('ASIG005', 1, 2023, 1005, '789123456');
 
 --Funciones
 
@@ -570,3 +673,5 @@ SELECT p.cedula, p.nombre, p.apellido, COUNT(a.id_materia) AS numero_materias
 FROM profesores p
 LEFT JOIN asignaciones a ON p.cedula = a.cedula_profesor
 GROUP BY p.cedula, p.nombre, p.apellido;
+
+
