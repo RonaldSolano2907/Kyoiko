@@ -616,35 +616,42 @@ WHERE c.FechaFin IS NULL OR c.FechaFin > CURRENT_DATE;
 
 --vista_departamentos_profesores
 CREATE VIEW vista_departamentos_profesores AS
-SELECT d.nombre AS departamento, p.nombre AS profesor, p.apellido
-FROM departamentos d
-JOIN profesores p ON d.cedula_jefe = p.cedula;
+SELECT d.Nombre AS Departamento, p.Nombre AS Profesor, p.PrimerApellido
+FROM DEPARTAMENTO d
+JOIN PROFESORES p ON d.IdDepartamento = p.IdDepartamento;
 
---vista_estudiantes_departamento
-CREATE VIEW vista_estudiantes_departamento AS
-SELECT d.nombre AS departamento, e.cedula, e.nombre, e.apellido
-FROM departamentos d
-JOIN estudiantes e ON d.id = e.id_departamento;
+--vista_estudiantes_materia
+CREATE VIEW vista_estudiantes_materia AS
+SELECT m.Nombre AS NombreMateria,
+e.Cedula AS CedulaEstudiante,
+e.Nombre AS NombreEstudiante,
+e.Apellido1 AS PrimerApellido,
+ma.IdMatricula,
+ma.Semestre,
+ma.AÒo,
+ma.FechaMatricula
+FROM MATRICULA ma
+JOIN ESTUDIANTE e ON ma.CedulaEstudiante = e.Cedula
+JOIN MATERIA m ON ma.IdMateria = m.IdMateria;
 
---vista_estudiantes_matriculados
-CREATE VIEW vista_estudiantes_matriculados AS
-SELECT e.cedula, e.nombre, e.apellido, m.nombre_materia, mat.semestre, mat.a√±o
-FROM estudiantes e
-JOIN matriculas mat ON e.cedula = mat.cedula_estudiante
-JOIN materias m ON mat.id_materia = m.id;
 
 --vista_historial_matricula
 CREATE VIEW vista_historial_matricula AS
-SELECT e.cedula, e.nombre, e.apellido, m.nombre_materia, mat.fecha_matricula, mat.semestre, mat.a√±o
-FROM estudiantes e
-JOIN matriculas mat ON e.cedula = mat.cedula_estudiante
-JOIN materias m ON mat.id_materia = m.id;
+SELECT e.Cedula, e.Nombre, e.Apellido1, m.Nombre AS NombreMateria, ma.FechaMatricula, ma.Semestre, ma.AÒo
+FROM ESTUDIANTE e
+JOIN MATRICULA ma ON e.Cedula = ma.CedulaEstudiante
+JOIN MATERIA m ON ma.IdMateria = m.IdMateria;
 
 --vista_horarios_clases
 CREATE VIEW vista_horarios_clases AS
-SELECT m.nombre AS materia, h.aula, h.hora_inicio, h.hora_fin, h.dia_semana
-FROM horarios h
-JOIN materias m ON h.id_materia = m.id;
+SELECT 
+m.Nombre AS NombreMateria,
+h.Aula,
+h.HorarioInicio,
+h.HorarioFin,
+h.DiaSemana
+FROM HORARIOS h
+JOIN MATERIA m ON h.IdMateria = m.IdMateria;
 
 --vista_materias_inscritos
 CREATE VIEW vista_materias_inscritos AS

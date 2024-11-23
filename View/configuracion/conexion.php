@@ -3,8 +3,8 @@
 $host = "localhost";
 $port = "1521";
 $sid = "orcl";
-$username = "tu_usuario"; // Cambia por tu usuario de Oracle
-$password = "tu_contraseña"; // Cambia por tu contraseña de Oracle
+$username = "USERLBD"; 
+$password = "123"; 
 
 try {
     // Crear la conexión
