@@ -1088,622 +1088,244 @@ END PaqueteHorarios;
 
 
 --creación de FUNCIONES 
---Función 1: Calcular Créditos Totales de un Estudiante
-CREATE OR REPLACE FUNCTION ObtenerCreditosTotalesEstudiante(
-    p_CedulaEstudiante IN Estudiante.Cedula%TYPE
-) RETURN NUMBER IS
-    v_TotalCreditos NUMBER := 0;
+-- Función 1: Total de estudiantes registrados
+CREATE OR REPLACE FUNCTION TotalEstudiantesRegistrados RETURN NUMBER IS
+    v_Total NUMBER;
 BEGIN
-    SELECT SUM(Materia.Creditos)
-    INTO v_TotalCreditos
-    FROM Matricula
-    INNER JOIN Materia ON Matricula.IDMateria = Materia.ID
-    WHERE Matricula.CedulaEstudiante = p_CedulaEstudiante;
-    
-    RETURN NVL(v_TotalCreditos, 0);
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RETURN 0;
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30001, 'Error al obtener créditos totales: ' || SQLERRM);
-END ObtenerCreditosTotalesEstudiante;
-
-
---Función 2: Verificar Cumplimiento de Prerrequisitos
-CREATE OR REPLACE FUNCTION CumplePrerrequisitos(
-    p_CedulaEstudiante IN Estudiante.Cedula%TYPE,
-    p_IDMateria IN Materia.ID%TYPE
-) RETURN BOOLEAN IS
-    v_Count NUMBER;
-BEGIN
-    SELECT COUNT(*)
-    INTO v_Count
-    FROM Prerrequisitos PR
-    WHERE PR.IDMateriaPrincipal = p_IDMateria
-    AND NOT EXISTS (
-        SELECT 1
-        FROM Matricula M
-        WHERE M.CedulaEstudiante = p_CedulaEstudiante
-        AND M.IDMateria = PR.IDMateriaPrerrequisito
-    );
-    
-    RETURN v_Count = 0;
+    SELECT COUNT(*) INTO v_Total FROM Estudiante;
+    RETURN v_Total;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30002, 'Error al verificar prerrequisitos: ' || SQLERRM);
-END CumplePrerrequisitos;
+        RAISE_APPLICATION_ERROR(-30001, 'Error al obtener total de estudiantes registrados: ' || SQLERRM);
+END TotalEstudiantesRegistrados;
+/
 
---Función 3: Contar Estudiantes Matriculados en una Materia
-CREATE OR REPLACE FUNCTION ContarEstudiantesEnMateria(
-    p_IDMateria IN Materia.ID%TYPE,
-    p_Semestre IN Matricula.Semestre%TYPE,
-    p_Anio IN Matricula.Anio%TYPE
-) RETURN NUMBER IS
-    v_TotalEstudiantes NUMBER;
+-- Función 2: Estudiantes activos
+CREATE OR REPLACE FUNCTION TotalEstudiantesActivos RETURN NUMBER IS
+    v_Total NUMBER;
 BEGIN
-    SELECT COUNT(DISTINCT CedulaEstudiante)
-    INTO v_TotalEstudiantes
-    FROM Matricula
-    WHERE IDMateria = p_IDMateria
-    AND Semestre = p_Semestre
-    AND Anio = p_Anio;
-    
-    RETURN v_TotalEstudiantes;
+    SELECT COUNT(*) INTO v_Total FROM Estudiante WHERE Estado = 'activo';
+    RETURN v_Total;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30004, 'Error al contar estudiantes: ' || SQLERRM);
-END ContarEstudiantesEnMateria;
+        RAISE_APPLICATION_ERROR(-30002, 'Error al obtener total de estudiantes activos: ' || SQLERRM);
+END TotalEstudiantesActivos;
+/
 
---Función 4: Listar Materias Matriculadas por un Estudiante
-CREATE OR REPLACE FUNCTION ListarMateriasEstudiante(
-    p_CedulaEstudiante IN Estudiante.Cedula%TYPE,
-    p_Semestre IN Matricula.Semestre%TYPE,
-    p_Anio IN Matricula.Anio%TYPE
-) RETURN SYS_REFCURSOR IS
-    v_Materias SYS_REFCURSOR;
+-- Función 3: Estudiantes inactivos
+CREATE OR REPLACE FUNCTION TotalEstudiantesInactivos RETURN NUMBER IS
+    v_Total NUMBER;
 BEGIN
-    OPEN v_Materias FOR
-    SELECT M.ID, M.Nombre, M.Creditos
-    FROM Matricula MT
-    INNER JOIN Materia M ON MT.IDMateria = M.ID
-    WHERE MT.CedulaEstudiante = p_CedulaEstudiante
-    AND MT.Semestre = p_Semestre
-    AND MT.Anio = p_Anio;
-    
-    RETURN v_Materias;
-END ListarMateriasEstudiante;
-
-
---Función 5: Obtener Edad de un Estudiante
-CREATE OR REPLACE FUNCTION ObtenerEdadEstudiante(
-    p_CedulaEstudiante IN Estudiante.Cedula%TYPE
-) RETURN NUMBER IS
-    v_Edad NUMBER;
-    v_FechaNacimiento DATE;
-BEGIN
-    SELECT FechaNacimiento
-    INTO v_FechaNacimiento
-    FROM Estudiante
-    WHERE Cedula = p_CedulaEstudiante;
-
-    v_Edad := FLOOR(MONTHS_BETWEEN(SYSDATE, v_FechaNacimiento) / 12);
-
-    RETURN v_Edad;
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RETURN NULL;
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30003, 'Error al obtener edad del estudiante: ' || SQLERRM);
-END ObtenerEdadEstudiante;
-
-
---Función 6: Obtener Información del Profesor por Materia
-CREATE OR REPLACE FUNCTION ObtenerProfesorPorMateria(
-    p_IDMateria IN Materia.ID%TYPE,
-    p_Semestre IN Asignacion.Semestre%TYPE,
-    p_Anio IN Asignacion.Anio%TYPE
-) RETURN SYS_REFCURSOR IS
-    v_Profesor SYS_REFCURSOR;
-BEGIN
-    OPEN v_Profesor FOR
-    SELECT P.Cedula, P.Nombre, P.Apellidos, P.CorreoElectronico
-    FROM Asignacion A
-    INNER JOIN Profesor P ON A.CedulaProfesor = P.Cedula
-    WHERE A.IDMateria = p_IDMateria
-    AND A.Semestre = p_Semestre
-    AND A.Anio = p_Anio;
-    
-    RETURN v_Profesor;
-END ObtenerProfesorPorMateria;
-
---Función 7: Calcular Número de Materias que Imparte un Profesor
-CREATE OR REPLACE FUNCTION ContarMateriasProfesor(
-    p_CedulaProfesor IN Profesor.Cedula%TYPE,
-    p_Semestre IN Asignacion.Semestre%TYPE,
-    p_Anio IN Asignacion.Anio%TYPE
-) RETURN NUMBER IS
-    v_TotalMaterias NUMBER;
-BEGIN
-    SELECT COUNT(DISTINCT IDMateria)
-    INTO v_TotalMaterias
-    FROM Asignacion
-    WHERE CedulaProfesor = p_CedulaProfesor
-    AND Semestre = p_Semestre
-    AND Anio = p_Anio;
-    
-    RETURN v_TotalMaterias;
+    SELECT COUNT(*) INTO v_Total FROM Estudiante WHERE Estado = 'inactivo';
+    RETURN v_Total;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30005, 'Error al contar materias del profesor: ' || SQLERRM);
-END ContarMateriasProfesor;
+        RAISE_APPLICATION_ERROR(-30003, 'Error al obtener total de estudiantes inactivos: ' || SQLERRM);
+END TotalEstudiantesInactivos;
+/
 
---Función 8: Obtener Horario de una Materia
-CREATE OR REPLACE FUNCTION ObtenerHorariosMateria(
-    p_IDMateria IN Materia.ID%TYPE
-) RETURN SYS_REFCURSOR IS
-    v_Horarios SYS_REFCURSOR;
-BEGIN
-    OPEN v_Horarios FOR
-    SELECT Aula, HorarioInicio, HorarioFin, DiaSemana
-    FROM Horarios
-    WHERE IDMateria = p_IDMateria;
-    
-    RETURN v_Horarios;
-END ObtenerHorariosMateria;
-
---Función 9: Calcular Edad Promedio de Estudiantes
-CREATE OR REPLACE FUNCTION CalcularEdadPromedioEstudiantes RETURN NUMBER IS
+-- Función 4: Edad promedio de los estudiantes
+CREATE OR REPLACE FUNCTION EdadPromedioEstudiantes RETURN NUMBER IS
     v_EdadPromedio NUMBER;
 BEGIN
     SELECT AVG(FLOOR(MONTHS_BETWEEN(SYSDATE, FechaNacimiento) / 12))
     INTO v_EdadPromedio
     FROM Estudiante
     WHERE Estado = 'activo';
-    
     RETURN v_EdadPromedio;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30006, 'Error al calcular edad promedio: ' || SQLERRM);
-END CalcularEdadPromedioEstudiantes;
-
---Función 10: Obtener Dirección Completa de un Estudiante
-CREATE OR REPLACE FUNCTION ObtenerDireccionEstudiante(
-    p_CedulaEstudiante IN Estudiante.Cedula%TYPE
-) RETURN VARCHAR2 IS
-    v_Direccion VARCHAR2(4000);
-BEGIN
-    SELECT Provincia || ', ' || Canton || ', ' || Distrito || ', ' || DireccionExacta
-    INTO v_Direccion
-    FROM Direccion
-    WHERE CedulaEstudiante = p_CedulaEstudiante;
-    
-    RETURN v_Direccion;
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RETURN 'Dirección no encontrada';
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30007, 'Error al obtener dirección: ' || SQLERRM);
-END ObtenerDireccionEstudiante;
-
---Función 11: Calcular Total de Materias Ofertadas en un Departamento
-CREATE OR REPLACE FUNCTION ContarMateriasDepartamento(
-    p_IDDepartamento IN Departamento.ID%TYPE
-) RETURN NUMBER IS
-    v_TotalMaterias NUMBER;
-BEGIN
-    SELECT COUNT(DISTINCT M.ID)
-    INTO v_TotalMaterias
-    FROM Materia M
-    INNER JOIN Asignacion A ON M.ID = A.IDMateria
-    INNER JOIN Profesor P ON A.CedulaProfesor = P.Cedula
-    WHERE P.IDDepartamento = p_IDDepartamento;
-    
-    RETURN v_TotalMaterias;
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30008, 'Error al contar materias del departamento: ' || SQLERRM);
-END ContarMateriasDepartamento;
-
-
---Función 12: Obtener Lista de Estudiantes Inactivos
-CREATE OR REPLACE FUNCTION ListarEstudiantesInactivos RETURN SYS_REFCURSOR IS
-    v_Estudiantes SYS_REFCURSOR;
-BEGIN
-    OPEN v_Estudiantes FOR
-    SELECT Cedula, Nombre, Apellidos, CorreoElectronico
-    FROM Estudiante
-    WHERE Estado = 'inactivo';
-    
-    RETURN v_Estudiantes;
-END ListarEstudiantesInactivos;
-
---Función 13: Verificar Disponibilidad de Cupo en Materia
-CREATE OR REPLACE FUNCTION VerificarCupoMateria(
-    p_IDMateria IN Materia.ID%TYPE,
-    p_Semestre IN Matricula.Semestre%TYPE,
-    p_Anio IN Matricula.Anio%TYPE,
-    p_CupoMaximo IN NUMBER
-) RETURN VARCHAR2 IS
-    v_TotalEstudiantes NUMBER;
-BEGIN
-    SELECT COUNT(DISTINCT CedulaEstudiante)
-    INTO v_TotalEstudiantes
-    FROM Matricula
-    WHERE IDMateria = p_IDMateria
-    AND Semestre = p_Semestre
-    AND Anio = p_Anio;
-    
-    IF v_TotalEstudiantes < p_CupoMaximo THEN
-        RETURN 'DISPONIBLE';
-    ELSE
-        RETURN 'SIN CUPO';
-    END IF;
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30009, 'Error al verificar cupo de la materia: ' || SQLERRM);
-END VerificarCupoMateria;
-
---
-
-Pensado sobre durante 7 segundos
-Entiendo, disculpa por la confusión. La Función 3 que proporcioné referenciaba una tabla (MatriculaCalificaciones) que no está incluida en tu esquema. A continuación, reemplazaré esa función por una que utilice las tablas existentes y proporcionaré las siguientes 5 funciones, incluyendo sus códigos y explicaciones.
-
-Primer Grupo de 5 Funciones (Actualizado)
-Función 1: Calcular Créditos Totales de un Estudiante
-Descripción: Calcula el total de créditos que un estudiante ha matriculado hasta el momento.
-
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION ObtenerCreditosTotalesEstudiante(
-    p_CedulaEstudiante IN Estudiante.Cedula%TYPE
-) RETURN NUMBER IS
-    v_TotalCreditos NUMBER := 0;
-BEGIN
-    SELECT SUM(M.Creditos)
-    INTO v_TotalCreditos
-    FROM Matricula MT
-    INNER JOIN Materia M ON MT.IDMateria = M.ID
-    WHERE MT.CedulaEstudiante = p_CedulaEstudiante;
-    
-    RETURN NVL(v_TotalCreditos, 0);
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RETURN 0;
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30001, 'Error al obtener créditos totales: ' || SQLERRM);
-END ObtenerCreditosTotalesEstudiante;
+        RAISE_APPLICATION_ERROR(-30004, 'Error al calcular edad promedio de estudiantes: ' || SQLERRM);
+END EdadPromedioEstudiantes;
 /
-Función 2: Verificar Cumplimiento de Prerrequisitos
-Descripción: Verifica si un estudiante ha matriculado todas las materias que son prerrequisitos para una materia específica.
 
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION CumplePrerrequisitos(
-    p_CedulaEstudiante IN Estudiante.Cedula%TYPE,
-    p_IDMateria IN Materia.ID%TYPE
-) RETURN VARCHAR2 IS
-    v_Count NUMBER;
+-- Función 5: Estudiantes con matrícula activa
+CREATE OR REPLACE FUNCTION EstudiantesConMatriculaActiva RETURN NUMBER IS
+    v_Total NUMBER;
 BEGIN
-    SELECT COUNT(*)
-    INTO v_Count
-    FROM Prerrequisitos PR
-    WHERE PR.IDMateriaPrincipal = p_IDMateria
-    AND NOT EXISTS (
-        SELECT 1
-        FROM Matricula MT
-        WHERE MT.CedulaEstudiante = p_CedulaEstudiante
-        AND MT.IDMateria = PR.IDMateriaPrerrequisito
+    SELECT COUNT(DISTINCT CedulaEstudiante) INTO v_Total FROM Matricula;
+    RETURN v_Total;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-30005, 'Error al obtener estudiantes con matrícula activa: ' || SQLERRM);
+END EstudiantesConMatriculaActiva;
+/
+
+-- Función 6: Total de profesores registrados
+CREATE OR REPLACE FUNCTION TotalProfesoresRegistrados RETURN NUMBER IS
+    v_Total NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_Total FROM Profesor;
+    RETURN v_Total;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-30006, 'Error al obtener total de profesores registrados: ' || SQLERRM);
+END TotalProfesoresRegistrados;
+/
+
+-- Función 7: Materias asignadas
+CREATE OR REPLACE FUNCTION TotalMateriasAsignadas RETURN NUMBER IS
+    v_Total NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_Total FROM Asignacion;
+    RETURN v_Total;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-30007, 'Error al obtener total de materias asignadas: ' || SQLERRM);
+END TotalMateriasAsignadas;
+/
+
+-- Función 8: Promedio de materias por profesor
+CREATE OR REPLACE FUNCTION PromedioMateriasPorProfesor RETURN NUMBER IS
+    v_Promedio NUMBER;
+BEGIN
+    SELECT AVG(MateriasAsignadas) INTO v_Promedio
+    FROM (
+        SELECT COUNT(*) AS MateriasAsignadas
+        FROM Asignacion
+        GROUP BY CedulaProfesor
     );
-    
-    IF v_Count = 0 THEN
-        RETURN 'SI';
-    ELSE
-        RETURN 'NO';
-    END IF;
+    RETURN v_Promedio;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30002, 'Error al verificar prerrequisitos: ' || SQLERRM);
-END CumplePrerrequisitos;
+        RAISE_APPLICATION_ERROR(-30008, 'Error al calcular promedio de materias por profesor: ' || SQLERRM);
+END PromedioMateriasPorProfesor;
 /
-Función 3: Obtener Edad de un Estudiante
-Descripción: Calcula la edad actual de un estudiante basado en su fecha de nacimiento.
 
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION ObtenerEdadEstudiante(
-    p_CedulaEstudiante IN Estudiante.Cedula%TYPE
-) RETURN NUMBER IS
-    v_Edad NUMBER;
-    v_FechaNacimiento DATE;
+-- Función 9: Profesores con titulaciones avanzadas
+CREATE OR REPLACE FUNCTION ProfesoresConTitulacionesAvanzadas RETURN NUMBER IS
+    v_Total NUMBER;
 BEGIN
-    SELECT FechaNacimiento
-    INTO v_FechaNacimiento
-    FROM Estudiante
-    WHERE Cedula = p_CedulaEstudiante;
-
-    v_Edad := FLOOR(MONTHS_BETWEEN(SYSDATE, v_FechaNacimiento) / 12);
-
-    RETURN v_Edad;
+    SELECT COUNT(*) INTO v_Total
+    FROM Profesor
+    WHERE LOWER(TituloAcademico) IN ('maestría', 'maestria', 'doctorado');
+    RETURN v_Total;
 EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RETURN NULL;
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30003, 'Error al obtener edad del estudiante: ' || SQLERRM);
-END ObtenerEdadEstudiante;
+        RAISE_APPLICATION_ERROR(-30009, 'Error al obtener profesores con titulaciones avanzadas: ' || SQLERRM);
+END ProfesoresConTitulacionesAvanzadas;
 /
-Función 4: Contar Estudiantes Matriculados en una Materia
-Descripción: Devuelve el número de estudiantes actualmente matriculados en una materia específica.
 
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION ContarEstudiantesEnMateria(
-    p_IDMateria IN Materia.ID%TYPE,
-    p_Semestre IN Matricula.Semestre%TYPE,
-    p_Anio IN Matricula.Anio%TYPE
-) RETURN NUMBER IS
-    v_TotalEstudiantes NUMBER;
+-- Función 10: Carga horaria promedio por profesor
+CREATE OR REPLACE FUNCTION CargaHorariaPromedioPorProfesor RETURN NUMBER IS
+    v_Promedio NUMBER;
 BEGIN
-    SELECT COUNT(DISTINCT CedulaEstudiante)
-    INTO v_TotalEstudiantes
-    FROM Matricula
-    WHERE IDMateria = p_IDMateria
-    AND Semestre = p_Semestre
-    AND Anio = p_Anio;
-    
-    RETURN v_TotalEstudiantes;
+    SELECT AVG(TotalHoras) INTO v_Promedio
+    FROM (
+        SELECT P.Cedula, SUM(
+            EXTRACT(HOUR FROM (H.HorarioFin - H.HorarioInicio)) +
+            EXTRACT(MINUTE FROM (H.HorarioFin - H.HorarioInicio)) / 60
+        ) AS TotalHoras
+        FROM Horarios H
+        INNER JOIN Asignacion A ON H.IDMateria = A.IDMateria
+        INNER JOIN Profesor P ON A.CedulaProfesor = P.Cedula
+        GROUP BY P.Cedula
+    );
+    RETURN v_Promedio;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30004, 'Error al contar estudiantes: ' || SQLERRM);
-END ContarEstudiantesEnMateria;
+        RAISE_APPLICATION_ERROR(-30010, 'Error al calcular carga horaria promedio por profesor: ' || SQLERRM);
+END CargaHorariaPromedioPorProfesor;
 /
-Función 5: Listar Materias Matriculadas por un Estudiante
-Descripción: Devuelve un cursor con las materias que un estudiante ha matriculado en un semestre y año específicos.
 
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION ListarMateriasEstudiante(
-    p_CedulaEstudiante IN Estudiante.Cedula%TYPE,
-    p_Semestre IN Matricula.Semestre%TYPE,
-    p_Anio IN Matricula.Anio%TYPE
+-- Función 11: Total de materias ofertadas
+CREATE OR REPLACE FUNCTION TotalMateriasOfertadas RETURN NUMBER IS
+    v_Total NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_Total FROM Materia;
+    RETURN v_Total;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-30011, 'Error al obtener total de materias ofertadas: ' || SQLERRM);
+END TotalMateriasOfertadas;
+/
+
+-- Función 12: Materias sin prerrequisitos
+CREATE OR REPLACE FUNCTION TotalMateriasSinPrerrequisitos RETURN NUMBER IS
+    v_Total NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_Total
+    FROM Materia M
+    WHERE NOT EXISTS (
+        SELECT 1 FROM Prerrequisitos PR WHERE PR.IDMateriaPrincipal = M.ID
+    );
+    RETURN v_Total;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-30012, 'Error al obtener total de materias sin prerrequisitos: ' || SQLERRM);
+END TotalMateriasSinPrerrequisitos;
+/
+
+-- Función 13: Materias con cupo disponible
+CREATE OR REPLACE FUNCTION TotalMateriasConCupoDisponible(
+    p_Semestre IN NUMBER,
+    p_Anio IN NUMBER,
+    p_CupoMaximo IN NUMBER DEFAULT 30
+) RETURN NUMBER IS
+    v_Total NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_Total
+    FROM (
+        SELECT M.ID, COUNT(DISTINCT MT.CedulaEstudiante) AS NumEstudiantes
+        FROM Materia M
+        LEFT JOIN Matricula MT ON M.ID = MT.IDMateria
+            AND MT.Semestre = p_Semestre
+            AND MT.Anio = p_Anio
+        GROUP BY M.ID
+        HAVING COUNT(DISTINCT MT.CedulaEstudiante) < p_CupoMaximo
+    );
+    RETURN v_Total;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-30013, 'Error al obtener materias con cupo disponible: ' || SQLERRM);
+END TotalMateriasConCupoDisponible;
+/
+
+-- Función 14: Promedio de estudiantes por materia
+CREATE OR REPLACE FUNCTION PromedioEstudiantesPorMateria(
+    p_Semestre IN NUMBER,
+    p_Anio IN NUMBER
+) RETURN NUMBER IS
+    v_Promedio NUMBER;
+BEGIN
+    SELECT AVG(NumEstudiantes) INTO v_Promedio
+    FROM (
+        SELECT M.ID, COUNT(DISTINCT MT.CedulaEstudiante) AS NumEstudiantes
+        FROM Materia M
+        LEFT JOIN Matricula MT ON M.ID = MT.IDMateria
+            AND MT.Semestre = p_Semestre
+            AND MT.Anio = p_Anio
+        GROUP BY M.ID
+    );
+    RETURN v_Promedio;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-30014, 'Error al calcular promedio de estudiantes por materia: ' || SQLERRM);
+END PromedioEstudiantesPorMateria;
+/
+
+-- Función 15: Materias más demandadas
+CREATE OR REPLACE FUNCTION MateriasMasDemandadas(
+    p_Semestre IN NUMBER,
+    p_Anio IN NUMBER,
+    p_TopN IN NUMBER
 ) RETURN SYS_REFCURSOR IS
     v_Materias SYS_REFCURSOR;
 BEGIN
     OPEN v_Materias FOR
-    SELECT M.ID, M.Nombre, M.Creditos
-    FROM Matricula MT
-    INNER JOIN Materia M ON MT.IDMateria = M.ID
-    WHERE MT.CedulaEstudiante = p_CedulaEstudiante
-    AND MT.Semestre = p_Semestre
-    AND MT.Anio = p_Anio;
-    
+    SELECT *
+    FROM (
+        SELECT M.ID, M.Nombre, COUNT(DISTINCT MT.CedulaEstudiante) AS NumEstudiantes
+        FROM Materia M
+        LEFT JOIN Matricula MT ON M.ID = MT.IDMateria
+            AND MT.Semestre = p_Semestre
+            AND MT.Anio = p_Anio
+        GROUP BY M.ID, M.Nombre
+        ORDER BY NumEstudiantes DESC
+    )
+    WHERE ROWNUM <= p_TopN;
     RETURN v_Materias;
-END ListarMateriasEstudiante;
-/
-Pausa para Continuar
-
-Ahora hemos proporcionado las primeras 5 funciones corregidas y verificadas. Por favor, revisa estas funciones y, si todo está en orden, procederé a proporcionar el siguiente grupo de 5 funciones.
-
-Segundo Grupo de 5 Funciones
-Función 6: Obtener Información del Profesor por Materia
-Descripción: Devuelve el nombre completo y el correo electrónico del profesor asignado a una materia específica en un semestre y año dados.
-
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION ObtenerProfesorPorMateria(
-    p_IDMateria IN Materia.ID%TYPE,
-    p_Semestre IN Asignacion.Semestre%TYPE,
-    p_Anio IN Asignacion.Anio%TYPE
-) RETURN SYS_REFCURSOR IS
-    v_Profesor SYS_REFCURSOR;
-BEGIN
-    OPEN v_Profesor FOR
-    SELECT P.Cedula, P.Nombre, P.Apellidos, P.CorreoElectronico
-    FROM Asignacion A
-    INNER JOIN Profesor P ON A.CedulaProfesor = P.Cedula
-    WHERE A.IDMateria = p_IDMateria
-    AND A.Semestre = p_Semestre
-    AND A.Anio = p_Anio;
-    
-    RETURN v_Profesor;
-END ObtenerProfesorPorMateria;
-/
-Función 7: Calcular Número de Materias que Imparte un Profesor
-Descripción: Calcula cuántas materias está impartiendo un profesor en un semestre y año específicos.
-
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION ContarMateriasProfesor(
-    p_CedulaProfesor IN Profesor.Cedula%TYPE,
-    p_Semestre IN Asignacion.Semestre%TYPE,
-    p_Anio IN Asignacion.Anio%TYPE
-) RETURN NUMBER IS
-    v_TotalMaterias NUMBER;
-BEGIN
-    SELECT COUNT(DISTINCT IDMateria)
-    INTO v_TotalMaterias
-    FROM Asignacion
-    WHERE CedulaProfesor = p_CedulaProfesor
-    AND Semestre = p_Semestre
-    AND Anio = p_Anio;
-    
-    RETURN v_TotalMaterias;
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30005, 'Error al contar materias del profesor: ' || SQLERRM);
-END ContarMateriasProfesor;
-/
-Función 8: Obtener Horario de una Materia
-Descripción: Devuelve un cursor con los horarios de una materia específica.
-
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION ObtenerHorariosMateria(
-    p_IDMateria IN Materia.ID%TYPE
-) RETURN SYS_REFCURSOR IS
-    v_Horarios SYS_REFCURSOR;
-BEGIN
-    OPEN v_Horarios FOR
-    SELECT Aula, HorarioInicio, HorarioFin, DiaSemana
-    FROM Horarios
-    WHERE IDMateria = p_IDMateria;
-    
-    RETURN v_Horarios;
-END ObtenerHorariosMateria;
-/
-Función 9: Calcular Edad Promedio de Estudiantes
-Descripción: Calcula la edad promedio de todos los estudiantes activos.
-
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION CalcularEdadPromedioEstudiantes RETURN NUMBER IS
-    v_EdadPromedio NUMBER;
-BEGIN
-    SELECT AVG(FLOOR(MONTHS_BETWEEN(SYSDATE, FechaNacimiento) / 12))
-    INTO v_EdadPromedio
-    FROM Estudiante
-    WHERE Estado = 'activo';
-    
-    RETURN v_EdadPromedio;
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30006, 'Error al calcular edad promedio: ' || SQLERRM);
-END CalcularEdadPromedioEstudiantes;
-/
-Función 10: Obtener Dirección Completa de un Estudiante
-Descripción: Retorna la dirección completa de un estudiante como un solo texto concatenado.
-
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION ObtenerDireccionEstudiante(
-    p_CedulaEstudiante IN Estudiante.Cedula%TYPE
-) RETURN VARCHAR2 IS
-    v_Direccion VARCHAR2(4000);
-BEGIN
-    SELECT Provincia || ', ' || Canton || ', ' || Distrito || ', ' || DireccionExacta
-    INTO v_Direccion
-    FROM Direccion
-    WHERE CedulaEstudiante = p_CedulaEstudiante;
-    
-    RETURN v_Direccion;
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RETURN 'Dirección no encontrada';
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30007, 'Error al obtener dirección: ' || SQLERRM);
-END ObtenerDireccionEstudiante;
-/
-Pausa para Continuar
-
-Hemos completado el segundo grupo de 5 funciones, llevando el total a 10 funciones. Estas funciones han sido diseñadas y verificadas para trabajar con tu esquema existente y pueden ser utilizadas en tu proyecto.
-
-Por favor, revisa estas funciones y déjame saber si deseas que continúe con las últimas 5 funciones.
-
-Tercer Grupo de 5 Funciones
-Función 11: Calcular Total de Materias Ofertadas en un Departamento
-Descripción: Calcula cuántas materias son ofrecidas por un departamento específico.
-
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION ContarMateriasDepartamento(
-    p_IDDepartamento IN Departamento.ID%TYPE
-) RETURN NUMBER IS
-    v_TotalMaterias NUMBER;
-BEGIN
-    SELECT COUNT(DISTINCT M.ID)
-    INTO v_TotalMaterias
-    FROM Materia M
-    INNER JOIN Asignacion A ON M.ID = A.IDMateria
-    INNER JOIN Profesor P ON A.CedulaProfesor = P.Cedula
-    WHERE P.IDDepartamento = p_IDDepartamento;
-    
-    RETURN v_TotalMaterias;
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30008, 'Error al contar materias del departamento: ' || SQLERRM);
-END ContarMateriasDepartamento;
-/
-Función 12: Obtener Lista de Estudiantes Inactivos
-Descripción: Devuelve un cursor con los estudiantes que están inactivos.
-
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION ListarEstudiantesInactivos RETURN SYS_REFCURSOR IS
-    v_Estudiantes SYS_REFCURSOR;
-BEGIN
-    OPEN v_Estudiantes FOR
-    SELECT Cedula, Nombre, Apellidos, CorreoElectronico
-    FROM Estudiante
-    WHERE Estado = 'inactivo';
-    
-    RETURN v_Estudiantes;
-END ListarEstudiantesInactivos;
-/
-Función 13: Verificar Disponibilidad de Cupo en Materia
-Descripción: Verifica si una materia tiene cupo disponible basado en un límite máximo de estudiantes.
-
-sql
-Copiar código
-CREATE OR REPLACE FUNCTION VerificarCupoMateria(
-    p_IDMateria IN Materia.ID%TYPE,
-    p_Semestre IN Matricula.Semestre%TYPE,
-    p_Anio IN Matricula.Anio%TYPE,
-    p_CupoMaximo IN NUMBER
-) RETURN VARCHAR2 IS
-    v_TotalEstudiantes NUMBER;
-BEGIN
-    SELECT COUNT(DISTINCT CedulaEstudiante)
-    INTO v_TotalEstudiantes
-    FROM Matricula
-    WHERE IDMateria = p_IDMateria
-    AND Semestre = p_Semestre
-    AND Anio = p_Anio;
-    
-    IF v_TotalEstudiantes < p_CupoMaximo THEN
-        RETURN 'DISPONIBLE';
-    ELSE
-        RETURN 'SIN CUPO';
-    END IF;
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30009, 'Error al verificar cupo de la materia: ' || SQLERRM);
-END VerificarCupoMateria;
-
---Función 14: Obtener Nombre Completo del Estudiante
-CREATE OR REPLACE FUNCTION ObtenerNombreCompletoEstudiante(
-    p_CedulaEstudiante IN Estudiante.Cedula%TYPE
-) RETURN VARCHAR2 IS
-    v_NombreCompleto VARCHAR2(200);
-BEGIN
-    SELECT Nombre || ' ' || Apellidos
-    INTO v_NombreCompleto
-    FROM Estudiante
-    WHERE Cedula = p_CedulaEstudiante;
-    
-    RETURN v_NombreCompleto;
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RETURN 'Estudiante no encontrado';
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30010, 'Error al obtener nombre completo: ' || SQLERRM);
-END ObtenerNombreCompletoEstudiante;
-
-
---Función 15: Calcular Duración Total de Horario de una Materia
-CREATE OR REPLACE FUNCTION CalcularDuracionTotalMateria(
-    p_IDMateria IN Materia.ID%TYPE
-) RETURN NUMBER IS
-    v_DuracionTotal NUMBER := 0;
-BEGIN
-    SELECT SUM(EXTRACT(HOUR FROM (HorarioFin - HorarioInicio))*60 + EXTRACT(MINUTE FROM (HorarioFin - HorarioInicio)))/60
-    INTO v_DuracionTotal
-    FROM Horarios
-    WHERE IDMateria = p_IDMateria;
-    
-    RETURN NVL(v_DuracionTotal, 0);
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-30011, 'Error al calcular duración total: ' || SQLERRM);
-END CalcularDuracionTotalMateria;
+END MateriasMasDemandadas;
 
 --Creación de 10 VISTAS 
 --Vista 1: VistaEstudiantesActivos
