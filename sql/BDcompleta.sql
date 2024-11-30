@@ -1,4 +1,16 @@
 --creación de tablas
+
+CREATE TABLE Usuarios (
+    Usuario VARCHAR2(50) PRIMARY KEY,
+    Clave VARCHAR2(50) NOT NULL,
+    Rol VARCHAR2(20) DEFAULT 'admin' 
+);
+
+-- Insertamos un usuario
+INSERT INTO Usuarios (Usuario, Clave, Rol)
+VALUES ('admin', '12345', 'admin');
+COMMIT;
+
 CREATE TABLE Estudiante (
     Cedula VARCHAR2(50) PRIMARY KEY,
     Nombre VARCHAR2(50) NOT NULL,
