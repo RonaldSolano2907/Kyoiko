@@ -1,136 +1,133 @@
+<?php
+// Incluimos la conexión a la base de datos
+include '../includes/db_connection.php';
+
+// Procesamos el formulario al enviarlo
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $usuario = mysqli_real_escape_string($conn, $_POST['usuario']);
+    $clave = mysqli_real_escape_string($conn, $_POST['clave']);
+
+    // Consulta para verificar las credenciales
+    $query = "SELECT * FROM Usuarios WHERE Usuario = '$usuario' AND Clave = '$clave'";
+    $result = mysqli_query($conn, $query);
+
+    if (mysqli_num_rows($result) === 1) {
+        // Credenciales válidas, redirigimos al dashboard
+        header("Location: dashboard.php");
+        exit;
+    } else {
+        // Credenciales inválidas, mostramos el mensaje de error y redirigimos
+        echo "<script>
+                alert('Usuario o contraseña incorrectos. Redirigiendo a la página principal...');
+                setTimeout(function() {
+                    window.location.href = '../index.php';
+                }, 3000); // 3 segundos antes de redirigir
+              </script>";
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kyoiku - Inicio</title>
+    <title>Kyoiko - Iniciar Sesión</title>
     <style>
         /* ------------------------------
-           Estilos Exclusivos del Index Principal
+           Estilos del Login
         ------------------------------ */
-        .index-header {
-            background-color: #007BFF;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-        }
-
-        .index-header h1 {
+        body {
+            font-family: 'Roboto', sans-serif;
             margin: 0;
-            font-size: 1.8em;
+            padding: 0;
+            background: url('../assets/back.png') no-repeat center center fixed;
+            background-size: contain; /* Ajusta el ancho al tamaño de la pantalla */
+            display: flex;
+            justify-content: center; /* Centra horizontalmente */
+            align-items: center; /* Centra verticalmente */
+            height: 100vh; /* Altura completa de la pantalla */
         }
 
-        .index-header .login-button {
-            background-color: white;
-            color: #007BFF;
-            text-decoration: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.9em;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-
-        .index-header .login-button:hover {
-            background-color: #0056b3;
-            color: white;
-        }
-
-        .index-hero {
-            text-align: center;
-            padding: 50px 20px;
-            background-color: #f4f4f4;
-        }
-
-        .index-hero img {
-            max-width: 300px;
-            height: auto;
-        }
-
-        .index-section {
-            padding: 40px 20px;
-            background-color: #fff;
-            margin: 20px 0;
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.95); /* Fondo semitransparente */
+            padding: 30px 40px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             text-align: center;
+            width: 90%; /* Ocupa el 90% del ancho de la pantalla en dispositivos pequeños */
+            max-width: 400px; /* Ancho máximo en pantallas grandes */
         }
 
-        .index-section h2 {
-            margin-bottom: 10px;
+        .login-container h1 {
             color: #007BFF;
+            margin-bottom: 20px;
         }
 
-        .index-section p {
-            color: #555;
+        .login-container form {
+            display: flex;
+            flex-direction: column;
         }
 
-        .index-footer {
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .login-button {
             background-color: #007BFF;
             color: white;
-            text-align: center;
-            padding: 10px;
-            margin-top: 20px;
-        }
-
-        /* Fondo con imagen personalizada */
-        .index-hero {
-            background: url('../assets/back.png') no-repeat center center;
-            background-size: cover;
-            padding: 100px 20px; /* Ajusta el espacio del contenedor */
-        }
-
-        .index-hero img {
-            background: transparent;
             border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .login-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Para pantallas pequeñas */
+        @media (max-width: 768px) {
+            body {
+                background-size: cover; /* Cambia el ajuste de la imagen en pantallas pequeñas */
+            }
+
+            .login-container {
+                width: 100%; /* Ocupa el ancho completo en dispositivos pequeños */
+                max-width: 90%; /* Con límites */
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Header con Login -->
-    <header class="index-header">
-        <h1>Kyoiko</h1>
-        <a href="login.php" class="login-button">Iniciar Sesión</a>
-    </header>
-
-    <!-- Sección: Logo de la Institución -->
-    <section class="index-hero">
-        <img src="../assets/logo.png" alt="Logo de la Institución" class="hero-logo">
-    </section>
-
-    <!-- Sección: Acerca del Proyecto -->
-    <section class="index-section">
-        <h2>Acerca del Proyecto</h2>
-        <p>
-            Kyoiko es un sistema educativo diseñado para gestionar información académica de manera eficiente. 
-            Proporciona herramientas avanzadas para estudiantes, profesores y administradores, asegurando la 
-            optimización de los recursos educativos.
-        </p>
-    </section>
-
-    <!-- Sección: Historia -->
-    <section class="index-section">
-        <h2>Nuestra Historia</h2>
-        <p>
-            Fundada en 2024, Kyoiko nació con la visión de revolucionar la gestión educativa. Nuestro enfoque 
-            es brindar soluciones inteligentes que se adapten a las necesidades de las instituciones educativas.
-        </p>
-    </section>
-
-    <!-- Sección: Contacto -->
-    <section class="index-section">
-        <h2>Contacto</h2>
-        <p>
-            Para más información, contáctanos a través del correo electrónico: 
-            <a href="mailto:info@kyoiko.com">info@kyoiko.com</a>.
-        </p>
-    </section>
-
-    <!-- Footer -->
-    <footer class="index-footer">
-        <p>&copy; 2024 Kyoiko. Todos los derechos reservados.</p>
-    </footer>
+    <div class="login-container">
+        <h1>Iniciar Sesión</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="usuario">Usuario</label>
+                <input type="text" name="usuario" id="usuario" placeholder="Ingrese su usuario" required>
+            </div>
+            <div class="form-group">
+                <label for="clave">Contraseña</label>
+                <input type="password" name="clave" id="clave" placeholder="Ingrese su contraseña" required>
+            </div>
+            <button type="submit" class="login-button">Entrar</button>
+        </form>
+    </div>
 </body>
 </html>
