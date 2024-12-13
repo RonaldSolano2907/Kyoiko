@@ -1,6 +1,54 @@
 <?php
 // Incluimos la conexión a la base de datos
 include '../includes/db_connection.php';
+session_start();
+
+// Verificar si el usuario está autenticado
+if (!isset($_SESSION['usuario'])) {
+    header("Location: login.php");
+    exit;
+}
+
+// Inicializar variables
+$error = "";
+$datos = [];
+
+// Procedimientos y sus títulos
+$procedures = [
+    ['title' => 'Total Estudiantes Registrados', 'procedure' => 'ObtenerTotalEstudiantesRegistrados'],
+    ['title' => 'Estudiantes Activos', 'procedure' => 'ObtenerTotalEstudiantesActivos'],
+    ['title' => 'Estudiantes Inactivos', 'procedure' => 'ObtenerTotalEstudiantesInactivos'],
+    ['title' => 'Edad Promedio de Estudiantes', 'procedure' => 'ObtenerEdadPromedioEstudiantes'],
+    ['title' => 'Estudiantes con Matrícula Activa', 'procedure' => 'ObtenerEstudiantesConMatriculaActiva'],
+    ['title' => 'Total Profesores Registrados', 'procedure' => 'ObtenerTotalProfesoresRegistrados'],
+    ['title' => 'Total Materias Asignadas', 'procedure' => 'ObtenerTotalMateriasAsignadas'],
+    ['title' => 'Materias sin Prerrequisitos', 'procedure' => 'ObtenerTotalMateriasSinPrerrequisitos']
+];
+
+try {
+    foreach ($procedures as $proc) {
+        // Preparar la llamada al procedimiento almacenado
+        $stmt = oci_parse($conn, "BEGIN {$proc['procedure']}(:resultado); END;");
+        oci_bind_by_name($stmt, ":resultado", $resultado, 20);
+
+        if (!oci_execute($stmt)) {
+            $e = oci_error($stmt);
+            throw new Exception("Error al ejecutar {$proc['procedure']}: " . $e['message']);
+        }
+
+        // Almacenar el título y el resultado en la variable $datos
+        $datos[] = [
+            'title' => $proc['title'],
+            'value' => $resultado
+        ];
+
+        oci_free_statement($stmt);
+    }
+} catch (Exception $e) {
+    $error = $e->getMessage();
+}
+
+oci_close($conn);
 ?>
 
 <!DOCTYPE html>
@@ -8,9 +56,9 @@ include '../includes/db_connection.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control</title>
+    <title>Panel de Control - Kyoiko</title>
     <style>
-        /* CSS Base */
+        /* Estilos Base */
         body {
             font-family: 'Roboto', sans-serif;
             margin: 0;
@@ -19,67 +67,40 @@ include '../includes/db_connection.php';
             color: #333;
         }
 
-        h1, h2 {
-            margin: 0;
-        }
-
-        h1 {
-            font-size: 2em;
-            color: white;
-            text-align: center;
-            margin: 0;
-            padding: 15px 0;
-        }
-
-        h2 {
-            font-size: 1.5em;
-            text-align: center;
-            color: #007BFF;
-            margin-top: 20px;
-        }
-
-        /* Header */
         .header {
             background-color: #007BFF;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: white;
         }
 
-        .header img {
-            max-height: 50px;
-            margin-right: 15px;
-        }
-
-        /* Navbar */
         .navbar {
-            background-color: #fff;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #000;
             padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .navbar-list {
+        .navbar ul {
             list-style: none;
             margin: 0;
             padding: 0;
             display: flex;
         }
 
-        .navbar-item {
-            margin: 0 15px;
+        .navbar li {
+            margin: 0 10px;
         }
 
-        .navbar-link {
-            color: #333;
+        .navbar a {
+            color: white;
             text-decoration: none;
             font-size: 1em;
             font-weight: bold;
         }
 
-        .navbar-link:hover {
+        .navbar a:hover {
             color: #007BFF;
         }
 
@@ -97,10 +118,9 @@ include '../includes/db_connection.php';
             background-color: #0056b3;
         }
 
-        /* Dashboard */
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
             padding: 20px;
             max-width: 1200px;
@@ -108,125 +128,73 @@ include '../includes/db_connection.php';
         }
 
         .card {
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #007BFF;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .error {
+            color: red;
             text-align: center;
             padding: 20px;
-            color: white;
-            font-size: 1em;
-            height: 150px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        /* Colores cálidos y fríos */
-        .card:nth-child(1) { background-color: #FF6F61; } /* Rojo cálido */
-        .card:nth-child(2) { background-color: #6B5B95; } /* Púrpura frío */
-        .card:nth-child(3) { background-color: #88B04B; } /* Verde frío */
-        .card:nth-child(4) { background-color: #F7CAC9; } /* Rosa cálido */
-        .card:nth-child(5) { background-color: #92A8D1; } /* Azul frío */
-        .card:nth-child(6) { background-color: #034F84; } /* Azul oscuro frío */
-        .card:nth-child(7) { background-color: #F7786B; } /* Salmón cálido */
-        .card:nth-child(8) { background-color: #DE7A22; } /* Naranja cálido */
-        .card:nth-child(9) { background-color: #4B8E8D; } /* Verde azulado frío */
-        .card:nth-child(10) { background-color: #EFC050; } /* Amarillo cálido */
-        .card:nth-child(11) { background-color: #45B8AC; } /* Turquesa frío */
-        .card:nth-child(12) { background-color: #D65076; } /* Magenta cálido */
-        .card:nth-child(13) { background-color: #9B2335; } /* Rojo vino cálido */
-        .card:nth-child(14) { background-color: #55B4B0; } /* Verde menta frío */
-        .card:nth-child(15) { background-color: #E15D44; } /* Rojo ladrillo cálido */
-
-        .card h3 {
-            font-size: 1em;
-            color: #fff;
-            margin-bottom: 10px;
-        }
-
-        .card p {
-            font-size: 1.5em;
-            font-weight: bold;
-        }
-
-        /* Footer */
-        .footer {
-            background-color: #0056b3;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <div class="header">
-        <img src="../assets/logo.png" alt="Logo">
-        <h1>Sistema Educativo</h1>
+        <h1>Panel de Control - Kyoiko</h1>
     </div>
 
-    <!-- Navbar -->
     <nav class="navbar">
-        <ul class="navbar-list">
-            <li class="navbar-item"><a href="../modulos/profesores/index.php" class="navbar-link">Profesores</a></li>
-            <li class="navbar-item"><a href="../modulos/estudiantes/index.php" class="navbar-link">Estudiantes</a></li>
-            <li class="navbar-item"><a href="../modulos/materias/index.php" class="navbar-link">Materias</a></li>
-            <li class="navbar-item"><a href="../modulos/matriculas/index.php" class="navbar-link">Matrículas</a></li>
-            <li class="navbar-item"><a href="../modulos/prerrequisitos/index.php" class="navbar-link">Prerrequisitos</a></li>
-            <li class="navbar-item"><a href="../modulos/congelamientos/index.php" class="navbar-link">Congelamientos</a></li>
-            <li class="navbar-item"><a href="../modulos/departamentos/index.php" class="navbar-link">Departamentos</a></li>
-            <li class="navbar-item"><a href="../modulos/horarios/index.php" class="navbar-link">Horarios</a></li>
-            <li class="navbar-item"><a href="../modulos/asignaciones/index.php" class="navbar-link">Asignaciones</a></li>
+        <ul>
+            <li>Módulo Estudiantes
+                <ul>
+                    <li><a href="../modulos/estudiantes/registro_estudiantes.php">Registro</a></li>
+                    <li><a href="../modulos/estudiantes/consultar_editar_estudiantes.php">Consultar/Editar</a></li>
+                    <li><a href="../modulos/estudiantes/historial_academico_estudiantes.php">Historial Académico</a></li>
+                </ul>
+            </li>
+            <li>Módulo Profesores
+                <ul>
+                    <li><a href="../modulos/profesores/registro_profesores.php">Registro</a></li>
+                    <li><a href="../modulos/profesores/asignaciones_profesor.php">Asignaciones</a></li>
+                    <li><a href="../modulos/profesores/consultar_editar_profesores.php">Consultar/Editar</a></li>
+                </ul>
+            </li>
+            <li>Módulo Materias
+                <ul>
+                    <li><a href="../modulos/materias/registro_materias.php">Registro</a></li>
+                    <li><a href="../modulos/materias/plan_estudios.php">Plan de Estudios</a></li>
+                    <li><a href="../modulos/materias/prerrequisitos_materias.php">Prerrequisitos</a></li>
+                </ul>
+            </li>
+            <li>Módulo Matrículas
+                <ul>
+                    <li><a href="../modulos/matriculas/registro_matriculas.php">Registro</a></li>
+                    <li><a href="../modulos/matriculas/consultar_editar_matriculas.php">Consultar/Editar</a></li>
+                    <li><a href="../modulos/matriculas/reporte_matriculas.php">Reporte</a></li>
+                </ul>
+            </li>
         </ul>
         <button class="logout-button" onclick="window.location.href='../index.php'">Salir</button>
     </nav>
 
-    <!-- Content -->
-    <div class="content">
-        <h2>Panel Informativo</h2>
-        <div class="dashboard">
-            <?php
-            // Consultas de las funciones
-            $queries = [
-                ['Total Estudiantes Registrados', 'SELECT TotalEstudiantesRegistrados() AS resultado'],
-                ['Estudiantes Activos', 'SELECT TotalEstudiantesActivos() AS resultado'],
-                ['Estudiantes Inactivos', 'SELECT TotalEstudiantesInactivos() AS resultado'],
-                ['Edad Promedio de Estudiantes', 'SELECT EdadPromedioEstudiantes() AS resultado'],
-                ['Estudiantes con Matrícula Activa', 'SELECT EstudiantesConMatriculaActiva() AS resultado'],
-                ['Total Profesores Registrados', 'SELECT TotalProfesoresRegistrados() AS resultado'],
-                ['Total Materias Asignadas', 'SELECT TotalMateriasAsignadas() AS resultado'],
-                ['Promedio de Materias por Profesor', 'SELECT PromedioMateriasPorProfesor() AS resultado'],
-                ['Profesores con Titulaciones Avanzadas', 'SELECT ProfesoresConTitulacionesAvanzadas() AS resultado'],
-                ['Carga Horaria Promedio por Profesor', 'SELECT CargaHorariaPromedioPorProfesor() AS resultado'],
-                ['Total de Materias Ofertadas', 'SELECT TotalMateriasOfertadas() AS resultado'],
-                ['Materias sin Prerrequisitos', 'SELECT TotalMateriasSinPrerrequisitos() AS resultado'],
-                ['Materias con Cupo Disponible', 'SELECT TotalMateriasConCupoDisponible(1, 2024) AS resultado'],
-                ['Promedio de Estudiantes por Materia', 'SELECT PromedioEstudiantesPorMateria(1, 2024) AS resultado'],
-                ['Materias Más Demandadas', 'SELECT COUNT(*) FROM MateriasMasDemandadas(1, 2024, 5)']
-            ];
-
-            // Ejecutamos las consultas y mostramos los resultados
-            foreach ($queries as $query) {
-                $title = $query[0];
-                $sql = $query[1];
-                $result = mysqli_query($conn, $sql);
-                $row = mysqli_fetch_assoc($result);
-                $value = $row['resultado'];
-                echo "
-                <div class='card'>
-                    <h3>$title</h3>
-                    <p>$value</p>
-                </div>";
-            }
-            ?>
+    <?php if ($error): ?>
+        <div class="error">
+            <?= htmlspecialchars($error) ?>
         </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-        &copy; 2024 Kyoiko. Todos los derechos reservados.
-    </div>
+    <?php else: ?>
+        <div class="dashboard">
+            <?php foreach ($datos as $dato): ?>
+                <div class="card">
+                    <h3><?= htmlspecialchars($dato['title']) ?></h3>
+                    <p><?= htmlspecialchars($dato['value']) ?></p>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 </body>
 </html>

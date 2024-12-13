@@ -1353,72 +1353,32 @@ SELECT
 FROM Estudiante
 WHERE Estado = 'activo';
 
---
+--Vistas 
 
-Pensado sobre durante 12 segundos
-¡Muy bien! Continuaremos con las 10 vistas optimizadas, proporcionándolas en grupos de 5 en 5, incluyendo una breve descripción y el código completo de cada una. Aseguraré que todo sea funcional y verificado para que puedas implementarlo en tu proyecto.
-
-Primer Grupo de 5 Vistas
-Vista 1: VistaEstudiantesActivos
-Descripción: Muestra todos los estudiantes que están activos en el sistema, incluyendo sus datos personales.
-
-sql
-Copiar código
-CREATE OR REPLACE VIEW VistaEstudiantesActivos AS
-SELECT
+-- Vista 1: Registro de estudiantes
+CREATE OR REPLACE VIEW RegistroEstudiantes AS
+SELECT 
     Cedula,
     Nombre,
     Apellidos,
+    CorreoElectronico AS Correo,
     Telefono,
-    FechaNacimiento,
-    CorreoElectronico,
+    Estado,
     FechaInscripcion
-FROM Estudiante
-WHERE Estado = 'activo';
+FROM Estudiante;
 
---Vista 2: VistaProfesoresPorDepartamento
-CREATE OR REPLACE VIEW VistaProfesoresPorDepartamento AS
-SELECT
-    D.ID AS IDDepartamento,
-    D.Nombre AS NombreDepartamento,
-    P.Cedula AS CedulaProfesor,
-    P.Nombre AS NombreProfesor,
-    P.Apellidos AS ApellidosProfesor,
-    P.CorreoElectronico,
-    P.TituloAcademico
-FROM Profesor P
-INNER JOIN Departamento D ON P.IDDepartamento = D.ID;
+-- Vista 2: Consultar y editar estudiantes
+CREATE OR REPLACE VIEW ConsultarEditarEstudiantes AS
+SELECT 
+    Cedula,
+    Nombre,
+    CorreoElectronico AS Correo,
+    Telefono,
+    Estado
+FROM Estudiante;
 
-
---Vista 3: VistaMateriasConPrerrequisitos
-CREATE OR REPLACE VIEW VistaMateriasConPrerrequisitos AS
-SELECT
-    MP.ID AS IDMateriaPrincipal,
-    MP.Nombre AS NombreMateriaPrincipal,
-    MPR.ID AS IDMateriaPrerrequisito,
-    MPR.Nombre AS NombreMateriaPrerrequisito
-FROM Prerrequisitos PR
-INNER JOIN Materia MP ON PR.IDMateriaPrincipal = MP.ID
-INNER JOIN Materia MPR ON PR.IDMateriaPrerrequisito = MPR.ID;
-
---Vista 4: VistaHorariosCompleto
-CREATE OR REPLACE VIEW VistaHorariosCompleto AS
-SELECT
-    M.ID AS IDMateria,
-    M.Nombre AS NombreMateria,
-    H.Aula,
-    H.DiaSemana,
-    TO_CHAR(H.HorarioInicio, 'HH24:MI') AS HorarioInicio,
-    TO_CHAR(H.HorarioFin, 'HH24:MI') AS HorarioFin,
-    P.Cedula AS CedulaProfesor,
-    P.Nombre || ' ' || P.Apellidos AS NombreProfesor
-FROM Horarios H
-INNER JOIN Materia M ON H.IDMateria = M.ID
-LEFT JOIN Asignacion A ON M.ID = A.IDMateria
-LEFT JOIN Profesor P ON A.CedulaProfesor = P.Cedula;
-
---Vista 5: VistaMatriculasPorEstudiante
-CREATE OR REPLACE VIEW VistaMatriculasPorEstudiante AS
+-- Vista 3: Historial académico de estudiantes
+CREATE OR REPLACE VIEW HistorialAcademicoEstudiantes AS
 SELECT
     E.Cedula AS CedulaEstudiante,
     E.Nombre || ' ' || E.Apellidos AS NombreEstudiante,
@@ -1431,34 +1391,19 @@ FROM Matricula MT
 INNER JOIN Estudiante E ON MT.CedulaEstudiante = E.Cedula
 INNER JOIN Materia M ON MT.IDMateria = M.ID;
 
---Vista 6: VistaEstudiantesConDireccion
-CREATE OR REPLACE VIEW VistaEstudiantesConDireccion AS
-SELECT
-    E.Cedula,
-    E.Nombre,
-    E.Apellidos,
-    D.Provincia,
-    D.Canton,
-    D.Distrito,
-    D.DireccionExacta
-FROM Estudiante E
-LEFT JOIN Direccion D ON E.Cedula = D.CedulaEstudiante;
+-- Vista 1: Registro de profesores
+CREATE OR REPLACE VIEW RegistroProfesores AS
+SELECT 
+    P.Cedula,
+    P.Nombre || ' ' || P.Apellidos AS NombreCompleto,
+    P.Telefono,
+    P.CorreoElectronico,
+    D.Nombre AS Departamento
+FROM Profesor P
+LEFT JOIN Departamento D ON P.IDDepartamento = D.ID;
 
-
---Vista 7: VistaCongelamientosActivos
-CREATE OR REPLACE VIEW VistaCongelamientosActivos AS
-SELECT
-    C.ID,
-    C.CedulaEstudiante,
-    E.Nombre || ' ' || E.Apellidos AS NombreEstudiante,
-    C.Motivo,
-    C.FechaInicio
-FROM Congelamientos C
-INNER JOIN Estudiante E ON C.CedulaEstudiante = E.Cedula
-WHERE C.FechaFin IS NULL;
-
---Vista 8: VistaAsignacionesProfesor
-CREATE OR REPLACE VIEW VistaAsignacionesProfesor AS
+-- Vista 2: Asignaciones de profesores
+CREATE OR REPLACE VIEW AsignacionesProfesor AS
 SELECT
     P.Cedula AS CedulaProfesor,
     P.Nombre || ' ' || P.Apellidos AS NombreProfesor,
@@ -1470,35 +1415,96 @@ FROM Asignacion A
 INNER JOIN Profesor P ON A.CedulaProfesor = P.Cedula
 INNER JOIN Materia M ON A.IDMateria = M.ID;
 
---Vista 9: VistaPrerrequisitosPendientesEstudiante
-CREATE OR REPLACE VIEW VistaPrerrequisitosPendientesEstudiante AS
+-- Vista 3: Consultar y editar profesores
+CREATE OR REPLACE VIEW ConsultarEditarProfesores AS
+SELECT 
+    Cedula,
+    Nombre || ' ' || Apellidos AS NombreCompleto,
+    Telefono,
+    CorreoElectronico,
+    TituloAcademico
+FROM Profesor;
+
+-- Vista 1: Registro de materias
+CREATE OR REPLACE VIEW RegistroMaterias AS
 SELECT
-    E.Cedula AS CedulaEstudiante,
-    E.Nombre || ' ' || E.Apellidos AS NombreEstudiante,
+    ID AS Codigo,
+    Nombre AS NombreMateria,
+    Descripcion,
+    Creditos
+FROM Materia;
+
+-- Vista 2: Plan de estudios
+CREATE OR REPLACE VIEW PlanEstudios AS
+SELECT
+    M.ID AS CodigoMateria,
+    M.Nombre AS NombreMateria,
+    M.Descripcion,
+    COUNT(PR.IDMateriaPrerrequisito) AS TotalPrerrequisitos
+FROM Materia M
+LEFT JOIN Prerrequisitos PR ON M.ID = PR.IDMateriaPrincipal
+GROUP BY M.ID, M.Nombre, M.Descripcion;
+
+-- Vista 3: Prerrequisitos de materias
+CREATE OR REPLACE VIEW PrerrequisitosMaterias AS
+SELECT 
+    MP.ID AS IDMateriaPrincipal,
+    MP.Nombre AS NombreMateriaPrincipal,
     MPR.ID AS IDMateriaPrerrequisito,
     MPR.Nombre AS NombreMateriaPrerrequisito
-FROM Estudiante E
-CROSS JOIN Prerrequisitos PR
-INNER JOIN Materia MPR ON PR.IDMateriaPrerrequisito = MPR.ID
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM Matricula MT
-    WHERE MT.CedulaEstudiante = E.Cedula
-    AND MT.IDMateria = PR.IDMateriaPrerrequisito
-);
+FROM Prerrequisitos PR
+INNER JOIN Materia MP ON PR.IDMateriaPrincipal = MP.ID
+INNER JOIN Materia MPR ON PR.IDMateriaPrerrequisito = MPR.ID;
 
---Vista 10: VistaEstudiantesPorMateria
-CREATE OR REPLACE VIEW VistaEstudiantesPorMateria AS
+-- Vista 1: Registro de congelamientos
+CREATE OR REPLACE VIEW RegistroCongelamientos AS
+SELECT
+    C.ID,
+    C.CedulaEstudiante,
+    E.Nombre || ' ' || E.Apellidos AS NombreEstudiante,
+    C.Motivo,
+    C.FechaInicio,
+    C.FechaFin
+FROM Congelamientos C
+INNER JOIN Estudiante E ON C.CedulaEstudiante = E.Cedula;
+
+-- Vista 2: Congelamientos activos
+CREATE OR REPLACE VIEW CongelamientosActivos AS
+SELECT
+    C.ID,
+    C.CedulaEstudiante,
+    E.Nombre || ' ' || E.Apellidos AS NombreEstudiante,
+    C.Motivo,
+    C.FechaInicio
+FROM Congelamientos C
+INNER JOIN Estudiante E ON C.CedulaEstudiante = E.Cedula
+WHERE C.FechaFin IS NULL;
+-- Vista 1: Registro de matrículas
+CREATE OR REPLACE VIEW RegistroMatriculas AS
+SELECT
+    MT.CedulaEstudiante,
+    E.Nombre || ' ' || E.Apellidos AS NombreEstudiante,
+    M.ID AS IDMateria,
+    M.Nombre AS NombreMateria,
+    MT.Semestre,
+    MT.Anio,
+    MT.FechaMatricula
+FROM Matricula MT
+INNER JOIN Estudiante E ON MT.CedulaEstudiante = E.Cedula
+INNER JOIN Materia M ON MT.IDMateria = M.ID;
+
+-- Vista 2: Reporte de matrículas por materia
+CREATE OR REPLACE VIEW ReporteMatriculasPorMateria AS
 SELECT
     M.ID AS IDMateria,
     M.Nombre AS NombreMateria,
-    E.Cedula AS CedulaEstudiante,
-    E.Nombre || ' ' || E.Apellidos AS NombreEstudiante,
+    COUNT(MT.CedulaEstudiante) AS TotalEstudiantes,
     MT.Semestre,
     MT.Anio
 FROM Matricula MT
 INNER JOIN Materia M ON MT.IDMateria = M.ID
-INNER JOIN Estudiante E ON MT.CedulaEstudiante = E.Cedula;
+GROUP BY M.ID, M.Nombre, MT.Semestre, MT.Anio;
+
 
 
 --Creacion de Triggers 

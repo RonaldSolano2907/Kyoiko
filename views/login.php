@@ -1,29 +1,43 @@
 <?php
-// Incluimos la conexión a la base de datos
+// /views/login.php
 include '../includes/db_connection.php';
+session_start();
 
 // Procesamos el formulario al enviarlo
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $usuario = mysqli_real_escape_string($conn, $_POST['usuario']);
-    $clave = mysqli_real_escape_string($conn, $_POST['clave']);
+    $usuario = trim($_POST['usuario']);
+    $clave = trim($_POST['clave']);
 
-    // Consulta para verificar las credenciales
-    $query = "SELECT * FROM Usuarios WHERE Usuario = '$usuario' AND Clave = '$clave'";
-    $result = mysqli_query($conn, $query);
-
-    if (mysqli_num_rows($result) === 1) {
-        // Credenciales válidas, redirigimos al dashboard
-        header("Location: dashboard.php");
-        exit;
+    // Validaciones básicas
+    if (empty($usuario) || empty($clave)) {
+        $error = "Por favor, ingrese usuario y contraseña.";
     } else {
-        // Credenciales inválidas, mostramos el mensaje de error y redirigimos
-        echo "<script>
-                alert('Usuario o contraseña incorrectos. Redirigiendo a la página principal...');
-                setTimeout(function() {
-                    window.location.href = '../index.php';
-                }, 3000); // 3 segundos antes de redirigir
-              </script>";
+        // Procedimiento almacenado para verificar credenciales
+        $query = "BEGIN PaqueteUsuarios.VerificarCredenciales(:usuario, :clave, :existe); END;";
+        $stmt = oci_parse($conn, $query);
+        oci_bind_by_name($stmt, ":usuario", $usuario);
+        oci_bind_by_name($stmt, ":clave", $clave);
+        oci_bind_by_name($stmt, ":existe", $existe, 1);
+
+        if (oci_execute($stmt)) {
+            if ($existe === '1') {
+                // Credenciales válidas, redirigimos al dashboard
+                $_SESSION['usuario'] = $usuario;
+                header("Location: dashboard.php");
+                exit;
+            } else {
+                // Credenciales inválidas
+                $error = "Usuario o contraseña incorrectos.";
+            }
+        } else {
+            $e = oci_error($stmt);
+            $error = "Error al verificar credenciales: " . htmlentities($e['message']);
+        }
+
+        oci_free_statement($stmt);
     }
+
+    oci_close($conn);
 }
 ?>
 
@@ -34,29 +48,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kyoiko - Iniciar Sesión</title>
     <style>
-        /* ------------------------------
-           Estilos del Login
-        ------------------------------ */
         body {
             font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
-            background: url('../assets/back.png') no-repeat center center fixed;
-            background-size: contain; 
+            background: url('../assets/images/back.png') no-repeat center center fixed;
+            background-size: cover;
             display: flex;
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
 
         .login-container {
-            background-color: rgba(255, 255, 255, 0.95); 
+            background-color: rgba(255, 255, 255, 0.95);
             padding: 30px 40px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             text-align: center;
-            width: 90%; 
-            max-width: 400px; 
+            width: 90%;
+            max-width: 400px;
         }
 
         .login-container h1 {
@@ -101,15 +112,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-color: #0056b3;
         }
 
-       
-        @media (max-width: 768px) {
-            body {
-                background-size: cover; 
-            }
+        .error {
+            color: red;
+            margin-bottom: 15px;
+        }
 
+        @media (max-width: 768px) {
             .login-container {
-                width: 100%; 
-                max-width: 90%; /
+                width: 100%;
+                max-width: 90%;
             }
         }
     </style>
@@ -117,7 +128,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="login-container">
         <h1>Iniciar Sesión</h1>
-        <form method="POST">
+
+        <!-- Mensaje de error -->
+        <?php if (isset($error)): ?>
+            <div class="error"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+
+        <form method="POST" action="">
             <div class="form-group">
                 <label for="usuario">Usuario</label>
                 <input type="text" name="usuario" id="usuario" placeholder="Ingrese su usuario" required>
