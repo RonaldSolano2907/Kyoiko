@@ -42,21 +42,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 0;
             padding: 0;
             background: url('../assets/back.png') no-repeat center center fixed;
-            background-size: contain; /* Ajusta el ancho al tamaño de la pantalla */
+            background-size: contain; 
             display: flex;
-            justify-content: center; /* Centra horizontalmente */
-            align-items: center; /* Centra verticalmente */
-            height: 100vh; /* Altura completa de la pantalla */
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
         }
 
         .login-container {
-            background-color: rgba(255, 255, 255, 0.95); /* Fondo semitransparente */
+            background-color: rgba(255, 255, 255, 0.95); 
             padding: 30px 40px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             text-align: center;
-            width: 90%; /* Ocupa el 90% del ancho de la pantalla en dispositivos pequeños */
-            max-width: 400px; /* Ancho máximo en pantallas grandes */
+            width: 90%; 
+            max-width: 400px; 
         }
 
         .login-container h1 {
@@ -101,15 +101,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-color: #0056b3;
         }
 
-        /* Para pantallas pequeñas */
+       
         @media (max-width: 768px) {
             body {
-                background-size: cover; /* Cambia el ajuste de la imagen en pantallas pequeñas */
+                background-size: cover; 
             }
 
             .login-container {
-                width: 100%; /* Ocupa el ancho completo en dispositivos pequeños */
-                max-width: 90%; /* Con límites */
+                width: 100%; 
+                max-width: 90%; /
             }
         }
     </style>
