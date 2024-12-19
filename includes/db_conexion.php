@@ -1,7 +1,7 @@
 <?php
 try {
-    $usuario_db = 'admin';          // Usuario de la base de datos
-    $clave_db = '12345';            // Contraseña de la base de datos
+    $usuario_db = 'USERLBD';          // Usuario de la base de datos
+    $clave_db = '123';            // Contraseña de la base de datos
     $cadena_conexion = 'localhost/XE'; // Cadena de conexión (puedes ajustar según tu configuración)
 
     // Conexión a Oracle utilizando OCI8
