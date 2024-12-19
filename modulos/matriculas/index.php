@@ -1,16 +1,26 @@
 <?php
-require_once '../includes/db_connection.php';
-
+// Configuración de conexión a la base de datos (valeoro.txt)
+$usuario_db = 'USERLBD';
+$clave_db = '123';
+$cadena_conexion = 'localhost/XE';
 try {
-    $query = "BEGIN PaqueteMatricula.LeerMatriculasEstudiante(NULL, :matriculas); END;";
-    $stmt = oci_parse($conn, $query);
-    $cursor = oci_new_cursor($conn);
-    oci_bind_by_name($stmt, ":matriculas", $cursor, -1, OCI_B_CURSOR);
-    oci_execute($stmt);
-    oci_execute($cursor);
+    $conn = oci_connect($usuario_db, $clave_db, $cadena_conexion);
+    if (!$conn) {
+        $e = oci_error();
+        die("Error de conexión: " . $e['message']);
+    }
 } catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
+    die("Excepción capturada: " . $e->getMessage());
 }
+
+// Obtener las matrículas
+$sql = "BEGIN PaqueteMatricula.LeerMatriculasEstudiante(NULL, :cursor); END;";
+$stmt = oci_parse($conn, $sql);
+$cursor = oci_new_cursor($conn);
+oci_bind_by_name($stmt, ":cursor", $cursor, -1, OCI_B_CURSOR);
+oci_execute($stmt);
+oci_execute($cursor);
+oci_close($conn);
 ?>
 
 <!DOCTYPE html>
@@ -19,13 +29,45 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matrículas</title>
-    <link rel="stylesheet" href="../assets/styles.css">
+    <style>
+        header { background-color: #007bff; color: #ffffff; padding: 10px; text-align: center; }
+        nav { background-color: #000; padding: 10px; display: flex; justify-content: space-between; }
+        nav ul { display: flex; list-style: none; margin: 0; padding: 0; }
+        nav a { color: white; text-decoration: none; font-weight: bold; margin: 0 10px; }
+        nav a:hover { color: #007bff; }
+        h1 { text-align: center; margin-top: 20px; }
+        .table-container { width: 90%; margin: auto; background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background-color: #007bff; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .btn-add { display: inline-block; background-color: #28a745; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-bottom: 10px; }
+        .btn-add:hover { background-color: #218838; }
+        footer { background-color: #333; color: white; text-align: center; padding: 10px; position: fixed; bottom: 0; width: 100%; }
+    </style>
 </head>
 <body>
-    <?php include '../includes/sidebar.php'; ?>
-    <div class="main-content">
+    <!-- Header -->
+    <header>
         <h1>Matrículas</h1>
-        <a href="create.php" class="btn btn-primary">Nueva Matrícula</a>
+    </header>
+
+    <!-- Navbar -->
+    <nav>
+        <ul>
+            <li><a href="../dashboard.php">Regresar</a></li>
+            <li><a href="create.php">Crear</a></li>
+            <li><a href="edit.php">Editar</a></li>
+            <li><a href="delete.php">Borrar</a></li>
+            <li><a href="index.php">Listar</a></li>
+            <li><button onclick="window.location.href='../index.php'">Salir</button></li>
+        </ul>
+    </nav>
+
+    <!-- Tabla de Matrículas -->
+    <div class="table-container">
+        <h1>Lista de Matrículas</h1>
+        <a href="create.php" class="btn-add">Nueva Matrícula</a>
         <table>
             <thead>
                 <tr>
@@ -34,25 +76,25 @@ try {
                     <th>Semestre</th>
                     <th>Año</th>
                     <th>Fecha Matrícula</th>
-                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <?php while ($row = oci_fetch_assoc($cursor)) : ?>
+                <?php while (($row = oci_fetch_assoc($cursor)) != false): ?>
                     <tr>
-                        <td><?= $row['CEDULAESTUDIANTE'] ?></td>
-                        <td><?= $row['IDMATERIA'] ?></td>
-                        <td><?= $row['SEMESTRE'] ?></td>
-                        <td><?= $row['ANIO'] ?></td>
-                        <td><?= $row['FECHAMATRICULA'] ?></td>
-                        <td>
-                            <a href="edit.php?cedula=<?= $row['CEDULAESTUDIANTE'] ?>&idMateria=<?= $row['IDMATERIA'] ?>&semestre=<?= $row['SEMESTRE'] ?>&anio=<?= $row['ANIO'] ?>" class="btn btn-warning">Editar</a>
-                            <a href="delete.php?cedula=<?= $row['CEDULAESTUDIANTE'] ?>&idMateria=<?= $row['IDMATERIA'] ?>&semestre=<?= $row['SEMESTRE'] ?>&anio=<?= $row['ANIO'] ?>" class="btn btn-danger">Eliminar</a>
-                        </td>
+                        <td><?= htmlspecialchars($row['CEDULAESTUDIANTE']); ?></td>
+                        <td><?= htmlspecialchars($row['IDMATERIA']); ?></td>
+                        <td><?= htmlspecialchars($row['SEMESTRE']); ?></td>
+                        <td><?= htmlspecialchars($row['ANIO']); ?></td>
+                        <td><?= htmlspecialchars($row['FECHAMATRICULA']); ?></td>
                     </tr>
                 <?php endwhile; ?>
             </tbody>
         </table>
     </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Sistema de Gestión Kyoiko</p>
+    </footer>
 </body>
 </html>

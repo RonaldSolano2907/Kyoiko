@@ -78,8 +78,7 @@ oci_close($conn);
             background-color: #000;
             padding: 10px 20px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            justify-content: center;
         }
 
         .navbar ul {
@@ -87,10 +86,13 @@ oci_close($conn);
             margin: 0;
             padding: 0;
             display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .navbar li {
             margin: 0 10px;
+            position: relative;
         }
 
         .navbar a {
@@ -98,10 +100,29 @@ oci_close($conn);
             text-decoration: none;
             font-size: 1em;
             font-weight: bold;
+            padding: 10px;
         }
 
-        .navbar a:hover {
-            color: #007BFF;
+        .navbar li:hover ul {
+            display: block;
+        }
+
+        .navbar ul ul {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #000;
+            padding: 10px 0;
+            list-style: none;
+        }
+
+        .navbar ul ul li {
+            padding: 10px;
+        }
+
+        .navbar ul ul a {
+            color: white;
         }
 
         .logout-button {
@@ -112,6 +133,7 @@ oci_close($conn);
             border-radius: 5px;
             cursor: pointer;
             font-size: 1em;
+            margin-left: auto;
         }
 
         .logout-button:hover {
@@ -120,7 +142,7 @@ oci_close($conn);
 
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             padding: 20px;
             max-width: 1200px;
@@ -128,12 +150,22 @@ oci_close($conn);
         }
 
         .card {
-            background-color: #007BFF;
             color: white;
             padding: 20px;
             text-align: center;
             border-radius: 8px;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            height: 150px;
+        }
+
+        .card h3 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        .card p {
+            font-size: 2em;
+            margin: 10px 0 0 0;
         }
 
         .error {
@@ -150,28 +182,28 @@ oci_close($conn);
 
     <nav class="navbar">
         <ul>
-            <li>Módulo Estudiantes
+            <li><a href="#">Estudiantes</a>
                 <ul>
                     <li><a href="../modulos/estudiantes/registro_estudiantes.php">Registro</a></li>
                     <li><a href="../modulos/estudiantes/consultar_editar_estudiantes.php">Consultar/Editar</a></li>
                     <li><a href="../modulos/estudiantes/historial_academico_estudiantes.php">Historial Académico</a></li>
                 </ul>
             </li>
-            <li>Módulo Profesores
+            <li><a href="#">Profesores</a>
                 <ul>
                     <li><a href="../modulos/profesores/registro_profesores.php">Registro</a></li>
                     <li><a href="../modulos/profesores/asignaciones_profesor.php">Asignaciones</a></li>
                     <li><a href="../modulos/profesores/consultar_editar_profesores.php">Consultar/Editar</a></li>
                 </ul>
             </li>
-            <li>Módulo Materias
+            <li><a href="#">Materias</a>
                 <ul>
                     <li><a href="../modulos/materias/registro_materias.php">Registro</a></li>
                     <li><a href="../modulos/materias/plan_estudios.php">Plan de Estudios</a></li>
                     <li><a href="../modulos/materias/prerrequisitos_materias.php">Prerrequisitos</a></li>
                 </ul>
             </li>
-            <li>Módulo Matrículas
+            <li><a href="#">Matrículas</a>
                 <ul>
                     <li><a href="../modulos/matriculas/registro_matriculas.php">Registro</a></li>
                     <li><a href="../modulos/matriculas/consultar_editar_matriculas.php">Consultar/Editar</a></li>
@@ -188,8 +220,11 @@ oci_close($conn);
         </div>
     <?php else: ?>
         <div class="dashboard">
-            <?php foreach ($datos as $dato): ?>
-                <div class="card">
+            <?php 
+            $colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A6', '#FF8C33', '#33FFF2', '#FF33E1', '#8C33FF', '#33FFA5', '#5733FF', '#FF5733', '#33FF57', '#3357FF', '#FF33A6', '#FF8C33'];
+            foreach ($datos as $index => $dato): 
+            ?>
+                <div class="card" style="background-color: <?= $colors[$index % count($colors)] ?>;">
                     <h3><?= htmlspecialchars($dato['title']) ?></h3>
                     <p><?= htmlspecialchars($dato['value']) ?></p>
                 </div>
